@@ -6,9 +6,12 @@ tag = function(id) {
 };
 
 window.onload = function() {
-  var paper, popup, render, select, socket, words;
-  socket = io.connect('http://localhost:8000/ime');
+  var paper, popup, render, select, words;
+  window.socket = io.connect('http://localhost:8000/ime');
   socket.on('ready', function(data) {
+    return console.log(data);
+  });
+  socket.on('search', function(data) {
     return console.log(data);
   });
   paper = tag('paper');

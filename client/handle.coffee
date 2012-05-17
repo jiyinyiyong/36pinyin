@@ -3,8 +3,9 @@ tag = (id) -> document.getElementById id
 
 window.onload = ->
 
-  socket = io.connect 'http://localhost:8000/ime'
+  window.socket = io.connect 'http://localhost:8000/ime'
   socket.on 'ready', (data) -> console.log data
+  socket.on 'search', (data) -> console.log data
 
   paper = tag 'paper'
   window.box = tag 'box'
