@@ -6,18 +6,26 @@ body {
   height: 100%;
   background: #f0f0ff;
 }
-#box {
-  max-height: 400px;
-  overflow-y: scroll;
-  background: rgba(163,218,245,0.5);
-  display: inline-block;
-  position: absolute;
-  top: 0px;
-  white-space: nowrap;
-}
 p {
   margin: 0px;
 }
 #select {
   background: #5cadd6;
+}
+#typing,
+#popup {
+  min-width: 100px;
+  position: absolute;
+  display: inline-block;
+  white-space: nowrap;
+}
+#typing {
+  height: 18px;
+  background: #a3daf5;
+}
+#popup {
+  max-height: 300px;
+  min-height: 18px;
+  overflow-y: auto;
+  background: #f5a3a3;
 }

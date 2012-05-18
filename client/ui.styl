@@ -7,17 +7,24 @@ body
   height 100%
   background hsl(240,97%,97%)
 
-#box
-  max-height 400px
-  overflow-y scroll
-  background hsla(200,80%,80%,0.5)
-  display inline-block
-  position absolute
-  top 0px
-  white-space nowrap
-
 p
   margin 0px
 
 #select
   background hsl(200,60%,60%)
+
+#typing, #popup
+  min-width 100px
+  position absolute
+  display inline-block
+  white-space nowrap
+
+#typing
+  height 18px
+  background hsl(200,80%,80%)
+
+#popup
+  max-height 300px
+  min-height 18px
+  overflow-y auto
+  background hsl(0,80%,80%)

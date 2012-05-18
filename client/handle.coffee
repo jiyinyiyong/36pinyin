@@ -1,90 +1,116 @@
 
 tag = (id) -> document.getElementById id
-
 chars = 'qwertyuiasdfghjk'
+point = undefined
+ch_mode = yes
+waiting = no
 
 window.onload = ->
-
   window.socket = io.connect 'http://localhost:8000/ime'
   socket.on 'ready', (data) -> console.log data
 
   paper = tag 'paper'
-  window.box = tag 'box'
-  words = 'erwerwerw\nwerwerwer333'
-  using = ''
-  fetch = []
-  popup = ['aaa', 'bbb', 'ccc']
-  select = 0
-  result = [{key:'key', word:'word'}]
+  window.article =
+    text: 'article:'
+    elem: tag 'article'
+  window.typing =
+    text: ''
+    elem: tag 'typing'
+  window.popup =
+    list: []
+    elem: tag 'popup'
 
-  render = ->
-    done = result
-      .map((x) -> x.word)
-      .reduce((x, y) -> x + y)
-    console.log  "done:", done
-    popup = [using].concat (item.word for item in fetch)
+  do render = ->
+    console.log typing.text
+    article.elem.innerHTML = article.text.replace(/\n/g, '<br>') +
+      '<span id="cursor"></span>'
+    if ch_mode
+      window.cursor             = tag 'cursor'
+      typing.elem.style.display = 'block'
+      typing.elem.style.left    = cursor.offsetLeft
+      typing.elem.style.top     = cursor.offsetTop
+      typing.elem.innerText = typing.text
+      
+      popup.elem.style.display  = 'block'
+      popup.elem.style.left     = cursor.offsetLeft
+      popup.elem.style.top      = cursor.offsetTop + 18
 
-    paper.innerHTML = words.replace(/\n/g, '<br>')
-    paper.innerHTML+= '<span id="cursor"></span>'
-    window.cursor = tag 'cursor'
-    box.style.left = cursor.offsetLeft
-    box.style.top = cursor.offsetTop
-    html = ''
-    for item, index in popup
-      insert = if index is select then " id='select'" else ''
-      html += "<p#{insert}>#{item}</p>"
-    box.innerHTML = html
-    window.target = tag 'select'
-    if target.offsetTop + 36 > box.clientHeight + box.scrollTop
-      box.scrollTop += 18
-    if target.offsetTop - 36 < box.scrollTop
-      box.scrollTop -= 18
+      html = ''
+      for item, index in popup.list
+        insert = if index is point then " id='select'" else ''
+        html += "<p#{insert}>#{item.word}</p>"
+      popup.elem.innerHTML = html
 
-  do render
+      if select = tag 'select'
+        length = popup.elem.clientHeight + popup.elem.scrollTop
+        if select.offsetTop + 36 > length
+          popup.elem.scrollTop += 18
+        if select.offsetTop - 36 < popup.elem.scrollTop
+          popup.elem.scrollTop -= 18
+      else
+        popup.elem.style.display  = 'none'
+    else
+      typing.elem.style.display = 'none'
+      popup.elem.style.display = 'none'
+
   socket.on 'search', (list) ->
-    fetch = list
-    do render
+    if ch_mode
+      popup.list = list
+      if list.length > 0 then point = 0
+      do render
 
-  search = (using) ->
-    select = 0
-    list = [using]
-    piece = using
+  search = ->
+    point = undefined
+    list = [typing.text]
+    piece = typing.text
     while piece.length > 3
       left = piece.length % 3
       tail = if left is 0 then piece.length-3 else piece.length-left
-      piece = using[0...tail]
+      piece = typing.text[0...tail]
       list.push piece
-    if using.length>2 then socket.emit 'search', list else
-      fetch = []
-      do render
-
-  add = (char) ->
-    using+= char
-    search using
+    if typing.text.length>2 then socket.emit 'search', list
+    do render
 
   down = ->
-    console.log 'popup::', popup
-    select += 1 if select < popup.length-1
-    do render
+    if ch_mode and popup.list.length > 0
+      point += 1 if point < popup.list.length-1
+      do render
 
-  goup = ->
-    select -= 1 if select > 0
-    do render
+  goup = -> if point?
+    if ch_mode and popup.list.length > 0
+      point -= 1 if point > 0
+      do render
 
   back = ->
-    using = using[0...using.length-1]
-    search using
+    if ch_mode and typing.text.length > 0
+      typing.text = typing.text[0...typing.text.length-1]
+      do search
+    else do render
 
   enter = ->
-    console.log 'enter'
+    if ch_mode and typing.text.length > 0
+      console.log 'enter'
+
+  flip = ->
+    ch_mode = if ch_mode then no else yes
+    do render
 
   document.onkeydown = (e) ->
     code = e.keyCode
     char = (String.fromCharCode code).toLowerCase()
-    if char in chars then add char
-    else if code is 38 then goup()
+    if code is 38 then goup()
     else if code is 40 then down()
     else if code is 13 then enter()
+    else if code is 16 then flip()
     else if code is 8  then back()
-    else return true
-    false
+    else console.log code
+
+  document.onkeypress = (e) ->
+    char = String.fromCharCode e.charCode
+    if ch_mode
+      if char in chars
+        typing.text += char
+        do search
+    else
+      article.text += char
+      do render

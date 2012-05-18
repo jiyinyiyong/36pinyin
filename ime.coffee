@@ -12,7 +12,7 @@ url = 'mongodb://nodejs:nodepasswd@localhost:27017/ime'
   throw err if err?
   db.collection 'dict', (err, coll) ->
     throw err if err?
-    coll.ensureIndex {count: -1}, (err, indexName) ->
+    coll.ensureIndex {key: 1, count: -1}, (err, indexName) ->
       throw err if err?
       io.of('/ime').on 'connection', (socket) ->
         socket.emit 'ready', 'hello world'
