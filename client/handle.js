@@ -15,7 +15,7 @@ ch_mode = true;
 waiting = false;
 
 window.onload = function() {
-  var back, down, enter, flip, goup, paper, render, search;
+  var back, down, enter, flip, goup, paper, render, search, single;
   window.socket = io.connect('http://localhost:8000/ime');
   socket.on('ready', function(data) {
     return console.log(data);
@@ -95,6 +95,9 @@ window.onload = function() {
     }
     return render();
   };
+  single = function() {
+    return socket.emit('single', typing.text);
+  };
   down = function() {
     if (ch_mode && popup.list.length > 0) {
       if (point < popup.list.length - 1) {
@@ -114,9 +117,13 @@ window.onload = function() {
     }
   };
   back = function() {
-    if (ch_mode && typing.text.length > 0) {
+    if (ch_mode) {
       typing.text = typing.text.slice(0, typing.text.length - 1);
-      return search();
+      if (typing.text.length > 2) {
+        return search();
+      } else {
+        return single();
+      }
     } else {
       return render();
     }
@@ -154,7 +161,11 @@ window.onload = function() {
     if (ch_mode) {
       if (__indexOf.call(chars, char) >= 0) {
         typing.text += char;
-        return search();
+        if (typing.text.length > 2) {
+          return search();
+        } else {
+          return single();
+        }
       }
     } else {
       article.text += char;

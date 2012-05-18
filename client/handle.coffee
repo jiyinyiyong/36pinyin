@@ -71,6 +71,9 @@ window.onload = ->
     if typing.text.length>2 then socket.emit 'search', list
     do render
 
+  single = ->
+    socket.emit 'single', typing.text
+
   down = ->
     if ch_mode and popup.list.length > 0
       point += 1 if point < popup.list.length-1
@@ -82,9 +85,12 @@ window.onload = ->
       do render
 
   back = ->
-    if ch_mode and typing.text.length > 0
+    if ch_mode
       typing.text = typing.text[0...typing.text.length-1]
-      do search
+      if typing.text.length > 2
+        do search
+      else
+        do single
     else do render
 
   enter = ->
@@ -110,7 +116,8 @@ window.onload = ->
     if ch_mode
       if char in chars
         typing.text += char
-        do search
+        if typing.text.length > 2 then do search
+        else do single
     else
       article.text += char
       do render
