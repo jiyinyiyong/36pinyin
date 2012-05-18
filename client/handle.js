@@ -15,7 +15,7 @@ ch_mode = true;
 waiting = false;
 
 window.onload = function() {
-  var back, down, enter, flip, goup, paper, render, search, single;
+  var back, chosen, down, enter, flip, goup, paper, render, search, single;
   window.socket = io.connect('http://localhost:8000/ime');
   socket.on('ready', function(data) {
     return console.log(data);
@@ -33,6 +33,7 @@ window.onload = function() {
     list: [],
     elem: tag('popup')
   };
+  chosen = [];
   (render = function() {
     var html, index, insert, item, length, select, _i, _len, _ref;
     console.log(typing.text);
@@ -71,8 +72,10 @@ window.onload = function() {
     }
   })();
   socket.on('search', function(list) {
-    if (ch_mode) {
-      popup.list = list;
+    if (ch_mode && typing.text.length > 0) {
+      popup.list = list.sort(function(x, y) {
+        return (Math.abs(x.key.length - typing.text.length)) - (Math.abs(y.key.length - typing.text.length));
+      });
       if (list.length > 0) {
         point = 0;
       }
@@ -102,8 +105,8 @@ window.onload = function() {
     if (ch_mode && popup.list.length > 0) {
       if (point < popup.list.length - 1) {
         point += 1;
+        return render();
       }
-      return render();
     }
   };
   goup = function() {
@@ -111,8 +114,8 @@ window.onload = function() {
       if (ch_mode && popup.list.length > 0) {
         if (point > 0) {
           point -= 1;
+          return render();
         }
-        return render();
       }
     }
   };
@@ -121,16 +124,47 @@ window.onload = function() {
       typing.text = typing.text.slice(0, typing.text.length - 1);
       if (typing.text.length > 2) {
         return search();
-      } else {
+      } else if (typing.text.length > 0) {
         return single();
+      } else {
+        typing.text = '';
+        popup.list = [];
+        return render();
       }
     } else {
+      article.text = article.text.slice(0, article.text.length - 1);
       return render();
     }
   };
   enter = function() {
+    var len1, len2, result;
     if (ch_mode && typing.text.length > 0) {
-      return console.log('enter');
+      chosen.push(popup.list[point]);
+      article.text += popup.list[point].word;
+      len1 = popup.list[point].key.length;
+      len2 = typing.text.length;
+      if (len1 >= len2) {
+        typing.text = '';
+        popup.list = [];
+        render();
+        result = {
+          key: chosen.map(function(x) {
+            return x.key;
+          }).join(''),
+          word: chosen.map(function(x) {
+            return x.word;
+          }).join('')
+        };
+        socket.emit('result', result);
+        return chosen = [];
+      } else {
+        typing.text = typing.text.slice(len1);
+        if (typing.text.length > 2) {
+          return search();
+        } else {
+          return single();
+        }
+      }
     }
   };
   flip = function() {

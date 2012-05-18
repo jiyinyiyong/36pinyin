@@ -19,6 +19,7 @@ window.onload = ->
   window.popup =
     list: []
     elem: tag 'popup'
+  chosen = []
 
   do render = ->
     console.log typing.text
@@ -54,8 +55,10 @@ window.onload = ->
       popup.elem.style.display = 'none'
 
   socket.on 'search', (list) ->
-    if ch_mode
-      popup.list = list
+    if ch_mode and typing.text.length > 0
+      popup.list = list.sort (x, y) ->
+        (Math.abs (x.key.length - typing.text.length)) -
+        (Math.abs (y.key.length - typing.text.length))
       if list.length > 0 then point = 0
       do render
 
@@ -76,26 +79,49 @@ window.onload = ->
 
   down = ->
     if ch_mode and popup.list.length > 0
-      point += 1 if point < popup.list.length-1
-      do render
+      if point < popup.list.length-1
+        point += 1
+        do render
 
   goup = -> if point?
     if ch_mode and popup.list.length > 0
-      point -= 1 if point > 0
-      do render
+      if point > 0
+        point -= 1
+        do render
 
   back = ->
     if ch_mode
       typing.text = typing.text[0...typing.text.length-1]
-      if typing.text.length > 2
-        do search
+      if typing.text.length > 2 then do search
+      else if typing.text.length > 0 then do single
       else
-        do single
-    else do render
+       typing.text = ''
+       popup.list = []
+       do render
+    else
+      article.text = article.text[0...article.text.length-1]
+      do render
 
   enter = ->
     if ch_mode and typing.text.length > 0
-      console.log 'enter'
+      chosen.push popup.list[point]
+      article.text += popup.list[point].word
+      len1 = popup.list[point].key.length
+      len2 = typing.text.length
+      if len1 >= len2
+        typing.text = ''
+        popup.list = []
+        do render
+        result =
+          key: chosen.map((x)->x.key).join ''
+          word: chosen.map((x)->x.word).join ''
+        socket.emit 'result', result
+        chosen = []
+      else
+        typing.text = typing.text[len1..]
+        if typing.text.length > 2
+          do search
+        else do single
 
   flip = ->
     ch_mode = if ch_mode then no else yes
