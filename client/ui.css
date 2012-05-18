@@ -8,6 +8,8 @@ body {
 }
 #box {
   min-width: 60px;
+  max-height: 400px;
+  overflow-y: auto;
   background: rgba(163,218,245,0.5);
   display: inline-block;
   position: absolute;
@@ -15,4 +17,7 @@ body {
 }
 p {
   margin: 0px;
+}
+#select {
+  background: #5cadd6;
 }
