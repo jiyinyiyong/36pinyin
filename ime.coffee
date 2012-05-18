@@ -18,10 +18,12 @@ url = 'mongodb://nodejs:nodepasswd@localhost:27017/ime'
         socket.emit 'ready', 'hello world'
 
         socket.on 'search', (list) ->
+          console.log list
           q1 = {key: {$in: list}}
           q2 = {key: new RegExp "^#{list[0]}\\w+"}
           coll.find({$or: [q1, q2]}, {_id:0})
             .toArray (err, data) ->
+              console.log 'data::', data
               socket.emit 'search', data
 
         socket.on 'result', (obj) ->

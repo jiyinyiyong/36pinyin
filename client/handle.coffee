@@ -15,9 +15,13 @@ window.onload = ->
   fetch = []
   popup = ['aaa', 'bbb', 'ccc']
   select = 0
-  result = []
+  result = [{key:'key', word:'word'}]
 
   render = ->
+    done = result
+      .map((x) -> x.word)
+      .reduce((x, y) -> x + y)
+    console.log  "done:", done
     popup = [using].concat (item.word for item in fetch)
 
     paper.innerHTML = words.replace(/\n/g, '<br>')
@@ -30,6 +34,11 @@ window.onload = ->
       insert = if index is select then " id='select'" else ''
       html += "<p#{insert}>#{item}</p>"
     box.innerHTML = html
+    window.target = tag 'select'
+    if target.offsetTop + 36 > box.clientHeight + box.scrollTop
+      box.scrollTop += 18
+    if target.offsetTop - 36 < box.scrollTop
+      box.scrollTop -= 18
 
   do render
   socket.on 'search', (list) ->
@@ -37,6 +46,7 @@ window.onload = ->
     do render
 
   search = (using) ->
+    select = 0
     list = [using]
     piece = using
     while piece.length > 3
@@ -53,10 +63,13 @@ window.onload = ->
     search using
 
   down = ->
-    console.log 'down'
+    console.log 'popup::', popup
+    select += 1 if select < popup.length-1
+    do render
 
   goup = ->
-    console.log 'goup'
+    select -= 1 if select > 0
+    do render
 
   back = ->
     using = using[0...using.length-1]
@@ -73,4 +86,5 @@ window.onload = ->
     else if code is 40 then down()
     else if code is 13 then enter()
     else if code is 8  then back()
-    else console.log code
+    else return true
+    false

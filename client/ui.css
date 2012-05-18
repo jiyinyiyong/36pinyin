@@ -7,13 +7,13 @@ body {
   background: #f0f0ff;
 }
 #box {
-  min-width: 60px;
   max-height: 400px;
-  overflow-y: auto;
+  overflow-y: scroll;
   background: rgba(163,218,245,0.5);
   display: inline-block;
   position: absolute;
   top: 0px;
+  white-space: nowrap;
 }
 p {
   margin: 0px;

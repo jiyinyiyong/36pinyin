@@ -21,9 +21,20 @@ window.onload = function() {
   fetch = [];
   popup = ['aaa', 'bbb', 'ccc'];
   select = 0;
-  result = [];
+  result = [
+    {
+      key: 'key',
+      word: 'word'
+    }
+  ];
   render = function() {
-    var html, index, insert, item, _i, _len;
+    var done, html, index, insert, item, _i, _len;
+    done = result.map(function(x) {
+      return x.word;
+    }).reduce(function(x, y) {
+      return x + y;
+    });
+    console.log("done:", done);
     popup = [using].concat((function() {
       var _i, _len, _results;
       _results = [];
@@ -44,7 +55,14 @@ window.onload = function() {
       insert = index === select ? " id='select'" : '';
       html += "<p" + insert + ">" + item + "</p>";
     }
-    return box.innerHTML = html;
+    box.innerHTML = html;
+    window.target = tag('select');
+    if (target.offsetTop + 36 > box.clientHeight + box.scrollTop) {
+      box.scrollTop += 18;
+    }
+    if (target.offsetTop - 36 < box.scrollTop) {
+      return box.scrollTop -= 18;
+    }
   };
   render();
   socket.on('search', function(list) {
@@ -53,6 +71,7 @@ window.onload = function() {
   });
   search = function(using) {
     var left, list, piece, tail;
+    select = 0;
     list = [using];
     piece = using;
     while (piece.length > 3) {
@@ -73,10 +92,17 @@ window.onload = function() {
     return search(using);
   };
   down = function() {
-    return console.log('down');
+    console.log('popup::', popup);
+    if (select < popup.length - 1) {
+      select += 1;
+    }
+    return render();
   };
   goup = function() {
-    return console.log('goup');
+    if (select > 0) {
+      select -= 1;
+    }
+    return render();
   };
   back = function() {
     using = using.slice(0, using.length - 1);
@@ -90,17 +116,18 @@ window.onload = function() {
     code = e.keyCode;
     char = (String.fromCharCode(code)).toLowerCase();
     if (__indexOf.call(chars, char) >= 0) {
-      return add(char);
+      add(char);
     } else if (code === 38) {
-      return goup();
+      goup();
     } else if (code === 40) {
-      return down();
+      down();
     } else if (code === 13) {
-      return enter();
+      enter();
     } else if (code === 8) {
-      return back();
+      back();
     } else {
-      return console.log(code);
+      return true;
     }
+    return false;
   };
 };
